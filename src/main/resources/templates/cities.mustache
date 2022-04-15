@@ -5,6 +5,40 @@
 	<title>Exemple de template</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="/css/style.css" />
+
+	<!-- On charge le moteur de template mustache https://mustache.github.io/ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
+
+    <script>
+        // Fonction qui fait l'appel AJAX
+        function doRequest(selectObject) {
+            var id = selectObject.value;
+			fetch("/api/countries/"+id)
+				.then(response => response.json())
+				.then(json => showResult(json))
+				.catch(error => showError(error));
+        }
+
+		function test(resultJson)
+		{
+			
+		}
+
+        function showResult(resultJson) {
+            var template = document.getElementById("countriesTemplate").innerHTML;
+            var generatedHtml = Mustache.render(template, resultJson._embedded);
+			console.log(resultJson);
+			console.log(template);
+			console.log(generatedHtml);
+            document.getElementById("tableCountries").innerHTML = generatedHtml;
+        }
+
+        // Fonction qui traite les erreurs de la requête
+        function showError(error) {
+            document.getElementById("tableCountries").innerHTML = "Erreur: " + error;
+        }
+
+    </script>
 </head>
 {{! Le contrôleur transmet 3 infos :
 - cities : liste des villes
@@ -37,8 +71,9 @@
 			{{#countries}} {{! Une option par pays}}
 				<option value="{{id}}">{{name}}</option>
 			{{/countries}}
-		</select><hr>
+		</select>
 		<input type="submit" value="Enregistrer" />
+		<hr>
 	</form>
 	<table>
 	<tr><th>Nom</th><th>Population</th><th>Pays</th><th>Action</th></tr>
@@ -55,7 +90,33 @@
 	{{/cities}}
 	</table>
 	<hr>
-	<a href="/">Retour au menu</a>
+	<h2> Choisissez un pays </h2>
+	<select name="country"  id="country" onchange="doRequest(this)">
+		{{#countries}} {{! Une option par pays}}
+			<option value="{{id}}">{{name}}</option>
+		{{/countries}}
+	</select>
+
+    <div id="tableCountries">...Le résultat va apparaître ici...</div>
+
+    <a href="/">Retour au menu</a>
+
+    <!-- Le template Mustache qui sert à formater la liste des pays -->
+    <script id="countriesTemplate" type="text/html">
+            <TABLE>
+				<TR>
+					<TH>Nom</TH>
+					<TH>Population (en millions)</TH>
+				</TR>
+				{{#cities}}
+				<TR>
+					<TD>{{name}}</TD>
+					<TD>{{population}}</TD>
+				</TR>
+				{{/cities}}
+            </TABLE>
+    </script>
+	<hr>
 </body>
 
 </html>
